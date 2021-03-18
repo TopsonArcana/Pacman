@@ -79,19 +79,40 @@ class SuperPacmanState:
         self.pacman.y += speed * DIR_OFFSET[self.pacman.direction][1]
         self.counter += 1
 
+
+class Enemy(Sprite):
+    def __init__(self, app, maze, r, c):
+        self.r = r
+        self.c = c
+        self.maze = maze
+
+        self.direction = DIR_STILL
+        self.next_direction = DIR_STILL
+
+        x, y = maze.piece_center(r, c)
+        super().__init__(app, 'images/enemy.png', x, y)
+        self.state = NormalPacmanState(self)
+
+    def set_next_direction(self, direction):
+        self.next_direction = direction
+
+
 class PacmanGame(GameApp):
     def init_game(self):
         self.maze = Maze(self, CANVAS_WIDTH, CANVAS_HEIGHT)
 
         self.pacman1 = Pacman(self, self.maze, 1, 1)
         self.pacman2 = Pacman(self, self.maze, self.maze.get_height() - 2, self.maze.get_width() - 2)
+        self.enemy = Enemy(self, self.maze, 3, 3)
+        self.enemy2 = Enemy(self, self.maze, 10, self.maze.get_width() - 6)
 
         self.pacman1_score_text = Text(self, 'P1: 0', 100, 20)
         self.pacman2_score_text = Text(self, 'P2: 0', 600, 20)
 
         self.elements.append(self.pacman1)
         self.elements.append(self.pacman2)
-
+        self.elements.append(self.enemy)
+        self.elements.append(self.enemy2)
         self.command_map = {
             'W': self.get_pacman_next_direction_function(self.pacman1, DIR_UP),
             'A': self.get_pacman_next_direction_function(self.pacman1, DIR_LEFT),
