@@ -108,16 +108,14 @@ class PacmanGame(GameApp):
 
         self.pacman1 = Pacman(self, self.maze, 1, 1)
         self.pacman2 = Pacman(self, self.maze, self.maze.get_height() - 2, self.maze.get_width() - 2)
-        self.enemy = Enemy(self, self.maze, 3, 3)
-        self.enemy2 = Enemy(self, self.maze, 10, self.maze.get_width() - 6)
+        self.enemy = [Enemy(self, self.maze, 3, 3),Enemy(self, self.maze, 10, self.maze.get_width() - 6)]
 
         self.pacman1_score_text = Text(self, 'P1: 0', 100, 20)
         self.pacman2_score_text = Text(self, 'P2: 0', 600, 20)
 
         self.elements.append(self.pacman1)
         self.elements.append(self.pacman2)
-        self.elements.append(self.enemy)
-        self.elements.append(self.enemy2)
+        self.elements.extend(self.enemy)
 
         self.pacman1_score = 0
         self.pacman2_score = 0
@@ -170,7 +168,7 @@ class PacmanGame(GameApp):
 
 if __name__ == "__main__":
     root = tk.Tk()
-    root.title("Monkey Banana Game")
+    root.title("Pacman Game")
 
     # do not allow window resizing
     root.resizable(False, False)
