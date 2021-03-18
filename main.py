@@ -11,7 +11,7 @@ CANVAS_HEIGHT = 600
 UPDATE_DELAY = 33
 
 PACMAN_SPEED = 5
-
+ENEMY_SPEED = 2
 
 class Pacman(Sprite):
     def __init__(self, app, maze, r, c):
@@ -93,13 +93,28 @@ class Enemy(Sprite):
 
         self.direction = DIR_STILL
         self.next_direction = DIR_STILL
+        self.step = 3
 
         x, y = maze.piece_center(r, c)
         super().__init__(app, 'images/enemy.png', x, y)
+
         self.state = NormalPacmanState(self)
+
+    def update(self):
+        if self.maze.is_at_center(self.x, self.y):
+            r, c = self.maze.xy_to_rc(self.x, self.y)
+
+            if self.maze.is_movable_direction(r, c, self.next_direction):
+                self.direction = self.next_direction
+
+        self.move_enemy()
 
     def set_next_direction(self, direction):
         self.next_direction = direction
+
+    def move_enemy(self):
+        self.x += ENEMY_SPEED * DIR_OFFSET[DIR_LEFT][0]
+
 
 
 class PacmanGame(GameApp):
