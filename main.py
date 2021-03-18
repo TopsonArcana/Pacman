@@ -1,7 +1,7 @@
 import tkinter as tk
 
 from gamelib import Sprite, GameApp, Text
-
+import random
 from dir_consts import *
 from maze import Maze
 
@@ -24,6 +24,7 @@ class Pacman(Sprite):
 
         x, y = maze.piece_center(r, c)
         super().__init__(app, 'images/pacman.png', x, y)
+        self.state = NormalPacmanState(self)
 
     def update(self):
         if self.maze.is_at_center(self.x, self.y):
@@ -31,18 +32,52 @@ class Pacman(Sprite):
 
             if self.maze.has_dot_at(r, c):
                 self.maze.eat_dot_at(r, c)
+                self.state.random_upgrade()
 
             if self.maze.is_movable_direction(r, c, self.next_direction):
                 self.direction = self.next_direction
             else:
                 self.direction = DIR_STILL
 
-        self.x += PACMAN_SPEED * DIR_OFFSET[self.direction][0]
-        self.y += PACMAN_SPEED * DIR_OFFSET[self.direction][1]
+        self.state.move_pacman()
 
     def set_next_direction(self, direction):
         self.next_direction = direction
 
+
+class NormalPacmanState:
+    def __init__(self, pacman):
+        self.pacman = pacman
+
+    def random_upgrade(self):
+        if random.random() < 0.1:
+            self.pacman.state = SuperPacmanState(self.pacman)
+
+    def move_pacman(self):
+        # TODO:
+        #   - update the pacman's location with normal speed
+        self.pacman.x += PACMAN_SPEED * DIR_OFFSET[self.pacman.direction][0]
+        self.pacman.y += PACMAN_SPEED * DIR_OFFSET[self.pacman.direction][1]
+
+
+class SuperPacmanState:
+    def __init__(self, pacman):
+        self.pacman = pacman
+        self.counter = 0
+
+    def random_upgrade(self):
+        pass
+
+    def move_pacman(self):
+        # TODO:
+        #   - update the pacman's location with super speed
+        #   - update the counter, if the counter >= 50, set state back to NormalPacmanState
+        if self.counter >= 50:
+            self.pacman.state = NormalPacmanState(self.pacman)
+        speed = 2 * PACMAN_SPEED
+        self.pacman.x += speed * DIR_OFFSET[self.pacman.direction][0]
+        self.pacman.y += speed * DIR_OFFSET[self.pacman.direction][1]
+        self.counter += 1
 
 class PacmanGame(GameApp):
     def init_game(self):
@@ -71,6 +106,7 @@ class PacmanGame(GameApp):
     def get_pacman_next_direction_function(self, pacman, next_direction):
         def f():
             pacman.set_next_direction(next_direction)
+
         return f
 
     def pre_update(self):
@@ -83,7 +119,6 @@ class PacmanGame(GameApp):
         ch = event.char.upper()
         if ch in self.command_map:
             self.command_map[ch]()
-
 
 
 if __name__ == "__main__":
