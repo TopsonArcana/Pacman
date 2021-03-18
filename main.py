@@ -12,6 +12,7 @@ UPDATE_DELAY = 33
 
 PACMAN_SPEED = 5
 
+
 class Pacman(Sprite):
     def __init__(self, app, maze, r, c):
         self.r = r
@@ -21,7 +22,9 @@ class Pacman(Sprite):
         self.direction = DIR_STILL
         self.next_direction = DIR_STILL
 
-        x, y = maze.piece_center(r,c)
+        self.dot_eaten_observers = []
+
+        x, y = maze.piece_center(r, c)
         super().__init__(app, 'images/pacman.png', x, y)
 
     def update(self):
@@ -30,9 +33,12 @@ class Pacman(Sprite):
 
             if self.maze.has_dot_at(r, c):
                 self.maze.eat_dot_at(r, c)
-            
+                for f in self.dot_eaten_observers:
+                    f()
+
             if self.maze.is_movable_direction(r, c, self.next_direction):
                 self.direction = self.next_direction
+
             else:
                 self.direction = DIR_STILL
 
@@ -48,7 +54,8 @@ class PacmanGame(GameApp):
         self.maze = Maze(self, CANVAS_WIDTH, CANVAS_HEIGHT)
 
         self.pacman1 = Pacman(self, self.maze, 1, 1)
-        self.pacman2 = Pacman(self, self.maze, self.maze.get_height() - 2, self.maze.get_width() - 2)
+        self.pacman2 = Pacman(
+            self, self.maze, self.maze.get_height() - 2, self.maze.get_width() - 2)
 
         self.pacman1_score_text = Text(self, 'P1: 0', 100, 20)
         self.pacman2_score_text = Text(self, 'P2: 0', 600, 20)
@@ -56,11 +63,23 @@ class PacmanGame(GameApp):
         self.elements.append(self.pacman1)
         self.elements.append(self.pacman2)
 
+        self.pacman1_score = 0
+        self.pacman2_score = 0
+
+        self.pacman1.dot_eaten_observers.append(
+            lambda: self.dot_eaten_by_pacman1())
+        self.pacman2.dot_eaten_observers.append(
+            lambda: self.dot_eaten_by_pacman2())
+
     def pre_update(self):
         pass
 
     def post_update(self):
         pass
+
+    def update_scores(self):
+        self.pacman1_score_text.set_text(f'P1: {self.pacman1_score}')
+        self.pacman2_score_text.set_text(f'P2: {self.pacman2_score}')
 
     def on_key_pressed(self, event):
         if event.char.upper() == 'A':
@@ -81,10 +100,19 @@ class PacmanGame(GameApp):
         elif event.char.upper() == 'L':
             self.pacman2.set_next_direction(DIR_RIGHT)
 
+    def dot_eaten_by_pacman1(self):
+        self.pacman1_score += 1
+        self.update_scores()
+
+    def dot_eaten_by_pacman2(self):
+        self.pacman2_score += 1
+        self.update_scores()
+
+
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Monkey Banana Game")
- 
+
     # do not allow window resizing
     root.resizable(False, False)
     app = PacmanGame(root, CANVAS_WIDTH, CANVAS_HEIGHT, UPDATE_DELAY)
